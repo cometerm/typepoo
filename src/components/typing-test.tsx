@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface TypingTestProps {
   quotes: string[];
@@ -13,7 +13,6 @@ export default function TypingTest({ quotes }: TypingTestProps) {
   const [currentQuote, setCurrentQuote] = useState("");
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [endTime, setEndTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
   const [liveWpm, setLiveWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
@@ -77,7 +76,6 @@ export default function TypingTest({ quotes }: TypingTestProps) {
           if (prev !== null && prev <= 1) {
             setIsFinished(true);
             setIsStarted(false);
-            setEndTime(Date.now());
 
             if (startTime) {
               const timeInMinutes = (gameMode as number) / 60;
@@ -99,16 +97,15 @@ export default function TypingTest({ quotes }: TypingTestProps) {
     }
   }, [gameMode, isStarted, isFinished, timeLeft, startTime, userInput.length]);
 
-  const getRandomQuote = () => {
+  const getRandomQuote = useCallback(() => {
     const randomIndex = Math.floor(Math.random() * quotes.length);
     return quotes[randomIndex];
-  };
+  }, [quotes]);
 
-  const initGame = () => {
+  const initGame = useCallback(() => {
     setCurrentQuote(getRandomQuote());
     setUserInput("");
     setStartTime(null);
-    setEndTime(null);
     setWpm(0);
     setLiveWpm(0);
     setAccuracy(100);
@@ -126,14 +123,13 @@ export default function TypingTest({ quotes }: TypingTestProps) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
     }
-  };
+  }, [gameMode, getRandomQuote]);
 
   const startGame = (mode: GameMode) => {
     setGameMode(mode);
     setCurrentQuote(getRandomQuote());
     setUserInput("");
     setStartTime(null);
-    setEndTime(null);
     setWpm(0);
     setLiveWpm(0);
     setAccuracy(100);
@@ -164,7 +160,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
         clearInterval(timerIntervalRef.current);
       }
     };
-  }, []);
+  }, [initGame]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -172,7 +168,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
     }
   }, [isFinished]);
 
-  const calculateWPM = () => {
+  const calculateWPM = useCallback(() => {
     if (!startTime || !isStarted) return 0;
 
     const timeInMinutes = (Date.now() - startTime) / 60000;
@@ -180,7 +176,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
 
     if (timeInMinutes === 0) return 0;
     return Math.round(wordCount / timeInMinutes);
-  };
+  }, [startTime, isStarted, userInput.length]);
 
   useEffect(() => {
     if (isStarted && !isFinished) {
@@ -200,7 +196,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
         clearInterval(wpmIntervalRef.current);
       }
     };
-  }, [isStarted, isFinished, userInput]);
+  }, [isStarted, isFinished, calculateWPM]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (showModeSidebar) {
@@ -265,7 +261,6 @@ export default function TypingTest({ quotes }: TypingTestProps) {
         gameMode === "normal" &&
         newUserInput.length === currentQuote.length
       ) {
-        setEndTime(Date.now());
         setIsFinished(true);
         setIsStarted(false);
 
