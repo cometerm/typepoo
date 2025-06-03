@@ -2,6 +2,7 @@
 
 import { quotes } from "@/lib/quotes";
 import TypingTest from "@/components/typing-test";
+import ContactUs from "@/components/contact-us";
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
       <div className="w-full max-w-3xl flex flex-col items-center">
         <TypingTest quotes={quotes} />
       </div>
+      <ContactUs />
     </main>
   );
 }

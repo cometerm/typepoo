@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface TypingTestProps {
   quotes: string[];
@@ -13,6 +13,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
   const [currentQuote, setCurrentQuote] = useState("");
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [endTime, setEndTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
   const [liveWpm, setLiveWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
@@ -43,72 +44,6 @@ export default function TypingTest({ quotes }: TypingTestProps) {
     { value: 60 as const, label: "60s", description: "60 seconds" },
     { value: 120 as const, label: "120s", description: "2 minutes" },
   ];
-
-  const getRandomQuote = useCallback(() => {
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-    return quotes[randomIndex];
-  }, [quotes]);
-
-  const calculateWPM = useCallback(() => {
-    if (!startTime || !isStarted) return 0;
-
-    const timeInMinutes = (Date.now() - startTime) / 60000;
-    const wordCount = userInput.length / 5;
-
-    if (timeInMinutes === 0) return 0;
-    return Math.round(wordCount / timeInMinutes);
-  }, [startTime, isStarted, userInput.length]);
-
-  const initGame = useCallback(() => {
-    setCurrentQuote(getRandomQuote());
-    setUserInput("");
-    setStartTime(null);
-    setWpm(0);
-    setLiveWpm(0);
-    setAccuracy(100);
-    setIsFinished(false);
-    setIsStarted(false);
-    setCurrentPosition(0);
-    setTimeLeft(gameMode === "normal" ? null : gameMode);
-    setCursorStyle({ left: 0, top: 0, height: 0 });
-
-    if (wpmIntervalRef.current) {
-      clearInterval(wpmIntervalRef.current);
-      wpmIntervalRef.current = null;
-    }
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-  }, [gameMode, getRandomQuote]);
-
-  const startGame = useCallback(
-    (mode: GameMode) => {
-      setGameMode(mode);
-      setCurrentQuote(getRandomQuote());
-      setUserInput("");
-      setStartTime(null);
-      setWpm(0);
-      setLiveWpm(0);
-      setAccuracy(100);
-      setIsFinished(false);
-      setIsStarted(false);
-      setCurrentPosition(0);
-      setTimeLeft(mode === "normal" ? null : mode);
-      setCursorStyle({ left: 0, top: 0, height: 0 });
-      setShowModeSidebar(false);
-
-      if (wpmIntervalRef.current) {
-        clearInterval(wpmIntervalRef.current);
-        wpmIntervalRef.current = null;
-      }
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-    },
-    [getRandomQuote]
-  );
 
   useEffect(() => {
     if (textContainerRef.current) {
@@ -142,6 +77,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
           if (prev !== null && prev <= 1) {
             setIsFinished(true);
             setIsStarted(false);
+            setEndTime(Date.now());
 
             if (startTime) {
               const timeInMinutes = (gameMode as number) / 60;
@@ -163,6 +99,61 @@ export default function TypingTest({ quotes }: TypingTestProps) {
     }
   }, [gameMode, isStarted, isFinished, timeLeft, startTime, userInput.length]);
 
+  const getRandomQuote = () => {
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    return quotes[randomIndex];
+  };
+
+  const initGame = () => {
+    setCurrentQuote(getRandomQuote());
+    setUserInput("");
+    setStartTime(null);
+    setEndTime(null);
+    setWpm(0);
+    setLiveWpm(0);
+    setAccuracy(100);
+    setIsFinished(false);
+    setIsStarted(false);
+    setCurrentPosition(0);
+    setTimeLeft(gameMode === "normal" ? null : gameMode);
+    setCursorStyle({ left: 0, top: 0, height: 0 });
+
+    if (wpmIntervalRef.current) {
+      clearInterval(wpmIntervalRef.current);
+      wpmIntervalRef.current = null;
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  };
+
+  const startGame = (mode: GameMode) => {
+    setGameMode(mode);
+    setCurrentQuote(getRandomQuote());
+    setUserInput("");
+    setStartTime(null);
+    setEndTime(null);
+    setWpm(0);
+    setLiveWpm(0);
+    setAccuracy(100);
+    setIsFinished(false);
+    setIsStarted(false);
+    setCurrentPosition(0);
+    setTimeLeft(mode === "normal" ? null : mode);
+    setCursorStyle({ left: 0, top: 0, height: 0 });
+    setShowModeSidebar(false);
+
+    if (wpmIntervalRef.current) {
+      clearInterval(wpmIntervalRef.current);
+      wpmIntervalRef.current = null;
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  };
+
   useEffect(() => {
     initGame();
     return () => {
@@ -173,13 +164,23 @@ export default function TypingTest({ quotes }: TypingTestProps) {
         clearInterval(timerIntervalRef.current);
       }
     };
-  }, [initGame]);
+  }, []);
 
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.focus();
     }
   }, [isFinished]);
+
+  const calculateWPM = () => {
+    if (!startTime || !isStarted) return 0;
+
+    const timeInMinutes = (Date.now() - startTime) / 60000;
+    const wordCount = userInput.length / 5;
+
+    if (timeInMinutes === 0) return 0;
+    return Math.round(wordCount / timeInMinutes);
+  };
 
   useEffect(() => {
     if (isStarted && !isFinished) {
@@ -199,7 +200,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
         clearInterval(wpmIntervalRef.current);
       }
     };
-  }, [isStarted, isFinished, userInput, calculateWPM]);
+  }, [isStarted, isFinished, userInput]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (showModeSidebar) {
@@ -253,10 +254,10 @@ export default function TypingTest({ quotes }: TypingTestProps) {
         .split("")
         .filter(
           (char, index) =>
-            index < currentQuote.length && char === currentQuote[index]
+            index < currentQuote.length && char === currentQuote[index],
         ).length;
       const accuracyPercent = Math.round(
-        (correctChars / newUserInput.length) * 100
+        (correctChars / newUserInput.length) * 100,
       );
       setAccuracy(accuracyPercent);
 
@@ -264,6 +265,7 @@ export default function TypingTest({ quotes }: TypingTestProps) {
         gameMode === "normal" &&
         newUserInput.length === currentQuote.length
       ) {
+        setEndTime(Date.now());
         setIsFinished(true);
         setIsStarted(false);
 
