@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { quotes } from "@/lib/quotes"
-import TypingTest from "@/components/typing-test"
+import { quotes } from "@/lib/quotes";
+import TypingTest from "@/components/typing-test";
 
 export default function Home() {
   return (
@@ -10,5 +10,5 @@ export default function Home() {
         <TypingTest quotes={quotes} />
       </div>
     </main>
-  )
+  );
 }
