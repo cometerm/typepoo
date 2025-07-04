@@ -13,7 +13,8 @@ export const metadata: Metadata = {
     icon: "/icon.png",
     shortcut: "/icon.png",
   },
-  description: "Typeoo is a typing test game that helps you improve your typing speed and accuracy.",
+  description:
+    "Typeoo is a typing test game that helps you improve your typing speed and accuracy.",
 };
 
 export default function RootLayout({
@@ -23,7 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistMono.variable} antialiased`} suppressHydrationWarning>
+      <body
+        className={`${geistMono.variable} antialiased bg-gradient-to-b from-neutral-950 to-neutral-900 text-neutral-100`}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

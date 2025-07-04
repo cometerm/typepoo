@@ -13,11 +13,7 @@ export default function ContactUs() {
   ];
 
   const handleEmailClick = (email: string) => {
-    // Option 1: Use Gmail web interface directly
     window.open(`https://mail.google.com/mail/?view=cm&to=${email}`, "_blank");
-    
-    // Option 2: Use mailto (uncomment this and comment above if you prefer)
-    // window.location.href = `mailto:${email}`;
   };
 
   return (
